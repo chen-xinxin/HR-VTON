@@ -1,0 +1,34 @@
+inference:
+python3 test_generator.py --occlusion --cuda True --test_name test1 --tocg_checkpoint ./eval_models/weights/v0.1/mtviton.pth --gpu_ids 0 --gen_checkpoint ./eval_models/weights/v0.1/gen.pth --datasetting unpaired --dataroot ./data --data_list test_pairs.txt
+
+实际上：
+python3 test_generator.py --occlusion --cuda True --test_name test1 --gpu_ids 0  --datasetting unpaired
+
+evaluate：
+python evaluate.py 
+
+Train try-on condition generator:
+python3 train_condition.py --cuda True --gpu_ids 0 --dataroot ./data/dresscode --Ddownx2 --Ddropout --lasttvonly --interflowloss --occlusion
+继续训练:
+python3 train_condition.py --cuda True --gpu_ids 0 --dataroot ./data/dresscode --Ddownx2 --Ddropout --lasttvonly --interflowloss --occlusion --tocg_checkpoint xxx --load_step xxx
+
+Test try-on condition generator:
+python3 test_condition.py --workers 1 --gpu_ids 0 --dataroot ./data/dresscode --datasetting paired --Ddownx2 --Ddropout  --occlusion --tocg_checkpoint xxx --D_checkpoint xxx
+
+
+Train try-on image generator:
+python3 train_generator.py --cuda True --name train --workers 1 --gpu_ids 0 --fp16 --tocg_checkpoint {condition generator ckpt path} --occlusion
+继续训练：
+python3 train_generator.py --cuda True --name train --workers 1 --gpu_ids 0 --fp16 --tocg_checkpoint {condition generator ckpt path} --occlusion --gen_checkpoint xxx --dis_checkpoint xxx
+
+Test try-on image generator:
+python3 test_generator.py --occlusion --gpu_ids 0 --cuda True --test_name test --dataroot ./data/dresscode --datasetting unpaired --tocg_checkpoint xxx --gen_checkpoint xxx
+
+制作image-parse-agnostic-v3.2：
+python get_parse_agnostic.py --data_path data/dresscode/dresscode/train --output_path data/dresscode/dresscode/train/image-parse-agnostic-v3.2
+python get_parse_agnostic.py --data_path data/dresscode/dresscode/test --output_path data/dresscode/dresscode/test/image-parse-agnostic-v3.2
+
+python get_parse_agnostic.py --data_path data/hr-vton --output_path data/hr-vton/image-parse-agnostic-v3.2
+
+制作agnostic-v3.2：
+python get_human_agnostic.py
