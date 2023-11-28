@@ -1,0 +1,47 @@
+inference:
+python3 test_generator.py --occlusion --cuda True --test_name test1 --tocg_checkpoint ./eval_models/weights/v0.1/mtviton.pth --gpu_ids 0 --gen_checkpoint ./eval_models/weights/v0.1/gen.pth --datasetting unpaired --dataroot ./data --data_list test_pairs.txt
+
+实际上：
+python3 test_generator.py --occlusion --cuda True --test_name test1 --gpu_ids 0  --datasetting unpaired
+
+evaluate：
+python evaluate.py 
+
+制作image-parse-agnostic-v3.2：
+python get_parse_agnostic.py --data_path data/dresscode/dresscode/train --output_path data/dresscode/dresscode/train/image-parse-agnostic-v3.2
+python get_parse_agnostic.py --data_path data/dresscode/dresscode/test --output_path data/dresscode/dresscode/test/image-parse-agnostic-v3.2
+
+Train try-on condition generator:
+python3 train_condition.py --cuda True --gpu_ids 0 --dataroot ./data/dresscode --Ddownx2 --Ddropout --lasttvonly --interflowloss --occlusion
+python3 train_condition.py --cuda True --gpu_ids 0 --Ddownx2 --Ddropout --lasttvonly --interflowloss --occlusion
+继续训练:
+python3 train_condition.py --cuda True --gpu_ids 0 --dataroot ./data/dresscode --Ddownx2 --Ddropout --lasttvonly --interflowloss --occlusion --tocg_checkpoint ./checkpoints/train/tocg_step_060000.pth --load_step 60000
+
+get_norm_const：
+python3 get_norm_const.py --workers 1 --gpu_ids 0 --dataroot ./data/dresscode  --Ddownx2 --Ddropout --tocg_checkpoint ./checkpoints/train/tocg_final.pth --D_checkpoint ./checkpoints/train/D_final.pth
+跑出来就是6068.904296875
+
+python3 get_norm_const.py
+跑出来就是
+paired:0.8050408959388733
+unpaired:0.08971438556909561
+
+第二次训练：
+paired:0.8991596102714539
+Test try-on condition generator:
+python3 test_condition.py --workers 1 --gpu_ids 0  --datasetting paired --Ddownx2 --Ddropout  --occlusion --tocg_checkpoint ./checkpoints/train/tocg_final.pth --D_checkpoint ./checkpoints/train/D_final.pth --norm_const 1.856870174407959
+
+
+
+
+
+Train try-on image generator:
+python3 train_generator.py --cuda True --name train --workers 1 --gpu_ids 0 --fp16 --tocg_checkpoint ./checkpoints/train/tocg_final.pth --occlusion
+继续训练：
+python3 train_generator.py --cuda True --name train --workers 1 --gpu_ids 0 --fp16 --tocg_checkpoint {condition generator ckpt path} --occlusion --gen_checkpoint xxx --dis_checkpoint xxx
+
+Test try-on image generator:
+python3 test_generator.py --occlusion --gpu_ids 0 --cuda True --test_name test --dataroot ./data/dresscode --datasetting unpaired --tocg_checkpoint xxx --gen_checkpoint xxx
+
+ladi-vton原来的numpy是1.25.2
+换成了1.23.5
